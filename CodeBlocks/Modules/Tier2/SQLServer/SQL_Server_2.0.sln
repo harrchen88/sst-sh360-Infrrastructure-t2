@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.572
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{151D2E53-A2C4-4D7D-83FE-D05416EBD58E}") = "SQL Server", "2.0\SQL_Server_2.0.deployproj", "{3D8319DF-4A6E-4A58-84BC-EF9DA5FA1CD1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3D8319DF-4A6E-4A58-84BC-EF9DA5FA1CD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D8319DF-4A6E-4A58-84BC-EF9DA5FA1CD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D8319DF-4A6E-4A58-84BC-EF9DA5FA1CD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D8319DF-4A6E-4A58-84BC-EF9DA5FA1CD1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {55441D65-CA8A-41B5-9602-638A029EFC7B}
+	EndGlobalSection
+EndGlobal

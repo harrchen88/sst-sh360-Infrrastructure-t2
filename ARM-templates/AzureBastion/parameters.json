@@ -1,0 +1,26 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "azureBastionName": {
+            "value": "snet-az-bas-eu-bastion-001"
+        },
+        "vNetId": {
+            "value": "/subscriptions/f2e68202-1605-4760-aa3d-b9859a54acb2/resourceGroups/mgr-Dojo-IAC-prd-t0/providers/Microsoft.Network/virtualNetworks/snet-az-vnet-eu-LZ-001"
+        },
+        "azureBastionPipName": {
+            "value": "snet-az-baspip-weu-bas-001-pip"
+        }
+        // "roleAssignments": {
+        //     "value": [
+        //         {
+        //             "roleDefinitionIdOrName": "Desktop Virtualization User",
+        //             "principalIds": [
+        //                 "12345678-1234-1234-1234-123456789012", // object 1
+        //                 "78945612-1234-1234-1234-123456789012" // object 2
+        //             ]
+        //         }
+        //     ]
+        // },
+    }
+}

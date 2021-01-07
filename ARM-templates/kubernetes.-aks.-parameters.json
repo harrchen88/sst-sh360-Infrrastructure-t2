@@ -1,0 +1,54 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "aksClusterName": {
+      "value": "Githun-demo-BACKEND-AKS"
+    },
+    "servicePrincipalId": {
+      "value": "fff91677-ece3-4ba7-bd2f-54ccdb6d33f1"
+    },
+    "servicePrincipalSecret": {
+      "value": "r1_Uj__mTbCCt~qrrcEzddZvRyv0__MLVW"
+    },
+    "vNetResourceGroup": {
+      "value": "mgr-Dojo-IAC-DEV-t0"
+    },
+    "vNetResourceName": {
+      "value": "vnet-hub-spoke-BU0001A0008-00"
+    },
+    "subnetName": {
+      "value": "snet-clusternodes"
+    },
+    "serviceCIDR": {
+      "value": "172.16.200.0/24"
+    },
+    "dnsServiceIP": {
+      "value": "172.16.200.10"
+    },
+    "dockerBridgeCIDR": {
+      "value": "172.17.0.1/16"
+    },
+    "podCidr": {
+      "value": "10.244.0.0/16"
+    },
+    "nodeCount": {
+      "value": 2
+    },
+    "minNodeCount": {
+      "value": 2
+    },
+    "maxNodeCount": {
+      "value": 4
+    },
+    "enableAutoScaling": {
+      "value": true
+    },
+    "logAnalyticsWorkspaceName": {
+      "value": "mgr-booking-workspace-dev-t0"
+    },
+    "logAnalyticsResourceGroup": {
+      "value": "mgr-Dojo-Booking-Log-Analytics-WhiteBelt"
+    }
+  }
+}

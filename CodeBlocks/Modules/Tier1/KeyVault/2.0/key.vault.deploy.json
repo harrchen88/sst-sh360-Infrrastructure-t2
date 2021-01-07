@@ -1,0 +1,193 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "keyVaultName": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "Name of the Azure Key Vault"
+      }
+    },
+    "accessPolicies": {
+      "type": "array",
+      "defaultValue": "{}",
+      "metadata": {
+        "description": "Access policies object"
+      }
+    },
+    "guid": {
+      "type": "string",
+      "defaultValue": "pid-5a669062-d8d0-471f-b36a-40115651cea7"
+    },
+    "secretsObject": {
+      "type": "secureObject",
+      "defaultValue": "{}",
+      "metadata": {
+        "description": "all secrets {\"secretName\":\"\",\"secretValue\":\"\"} wrapped in a secure object"
+      }
+    },
+    "logsRetentionInDays": {
+      "type": "int",
+      "defaultValue": 0,
+      "minValue": 0,
+      "maxValue": 365,
+      "metadata": {
+        "description": "Specifies the number of days that logs will be kept for, a value of 0 will retain data indefinitely"
+      }
+    },
+    "enableVaultForDeployment": {
+      "type": "bool",
+      "defaultValue": true,
+      "allowedValues": [
+        true,
+        false
+      ],
+      "metadata": {
+        "description": "Specifies if the vault is enabled for deployment by script or compute"
+      }
+    },
+    "enableVaultForTemplateDeployment": {
+      "type": "bool",
+      "defaultValue": true,
+      "allowedValues": [
+        true,
+        false
+      ],
+      "metadata": {
+        "description": "Specifies if the vault is enabled for a template deployment"
+      }
+    },
+    "enableVaultForDiskEncryption": {
+      "type": "bool",
+      "defaultValue": true,
+      "allowedValues": [
+        true,
+        false
+      ],
+      "metadata": {
+        "description": "Specifies if the azure platform has access to the vault for enabling disk encryption scenarios."
+      }
+    },
+    "vaultSku": {
+      "type": "string",
+      "defaultValue": "Premium",
+      "allowedValues": [
+        "Premium"
+      ],
+      "metadata": {
+        "description": "Specifies the SKU for the vault"
+      }
+    },
+    "diagnosticStorageAccountName": {
+      "type": "string",
+      "metadata": {
+        "description": "Diagnostics Storage Account Name"
+      }
+    },
+    "diagnosticStorageAccountRG": {
+      "type": "string",
+      "metadata": {
+        "description": "Diagnostics Storage Account Resource Group name"
+      }
+    },
+    "logAnalyticsWorkspaceResourceGroup": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "Log Analytics Workspace Resource Group Name"
+      }
+    },
+    "logAnalyticsWorkspaceName": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "Log Analytics Workspace name"
+      }
+    }
+  },
+  "variables": {
+    "keyVaultName": "[parameters('keyVaultName')]"
+  },
+  "resources": [
+    { // add this resource to the resources section in the mainTemplate.json (do not add the entire file)
+      "apiVersion": "2018-02-01",
+      "name": "[concat(parameters('guid'))]", // use your generated GUID here
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "resources": []
+        }
+      }
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults",
+      "apiVersion": "2016-10-01",
+      "name": "[parameters('keyVaultName')]",      
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "KeyVault"
+      },
+      "properties": {
+        "enabledForDeployment": "[parameters('enableVaultForDeployment')]",
+        "enabledForTemplateDeployment": "[parameters('enableVaultForTemplateDeployment')]",
+        "enabledForDiskEncryption": "[parameters('enableVaultForDiskEncryption')]",       
+        "tenantId": "[subscription().tenantId]",
+        "accessPolicies": "[parameters('accessPolicies')]",
+        "sku": {
+          "name": "[parameters('vaultSku')]",
+          "family": "A"
+        }
+      },
+      "resources": [        
+        {
+          "type": "Microsoft.KeyVault/vaults/providers/diagnosticsettings",
+          "apiVersion": "2016-09-01",
+          "name": "[concat(parameters('keyVaultName'), '/Microsoft.Insights/service')]",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[concat('Microsoft.KeyVault/vaults/', parameters('keyVaultName'))]"
+          ],
+          "properties": {
+            "storageAccountId": "[resourceId(parameters('diagnosticStorageAccountRG'),'Microsoft.Storage/storageAccounts', parameters('diagnosticStorageAccountName'))]",
+            "workspaceId": "[resourceId(parameters('logAnalyticsWorkspaceResourceGroup'), 'Microsoft.OperationalInsights/workspaces', parameters('logAnalyticsWorkspaceName'))]",
+            "logs": [
+              {
+                "category": "AuditEvent",
+                "enabled": true,
+                "retentionPolicy": {
+                  "enabled": true,
+                  "days": "[parameters('logsRetentionInDays')]"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2015-06-01",
+      "name": "[concat(parameters('keyVaultName'), '/', parameters('secretsObject').secrets[copyIndex()].secretName)]",
+      "properties": {
+        "value": "[parameters('secretsObject').secrets[copyIndex()].secretValue]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.KeyVault/vaults/', parameters('keyVaultName'))]"
+      ],
+      "copy": {
+        "name": "secretsCopy",
+        "count": "[length(parameters('secretsObject').secrets)]"
+      }
+    }
+  ],
+  "outputs": {
+    "keyVaultName": {
+      "type": "string",
+      "value": "[variables('keyVaultName')]"
+    }
+  }
+}

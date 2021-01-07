@@ -1,0 +1,117 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    
+    "parameters": {
+        "vNetName": {
+            "value": "snet-az-vnet-eu-LZ-001"
+        },
+        
+        "vNetAddressPrefixes": {
+            "value": ["172.20.224.0/21"]
+        },
+        
+        "subnets": {
+            "value": [{
+                    "name": "GatewaySubnet",
+                    "addressPrefix": "172.20.224.0/24"
+                },
+                {
+                    "name": "snet-az-subnet-eu-Web-001",
+                    "addressPrefix": "172.20.225.0/24",
+                    "networkSecurityGroupName": "",
+                    "routeTableName": "",
+                    "serviceEndpoints": [{
+                            "service": "Microsoft.EventHub"
+                        },
+                        {
+                            "service": "Microsoft.Sql"
+                        },
+                        {
+                            "service": "Microsoft.Storage"
+                        },
+                        {
+                            "service": "Microsoft.KeyVault"
+                        }
+                    ],
+                    "delegations": []
+                },
+                {
+                    "name": "snet-az-subnet-eu-db-002",
+                    "addressPrefix": "172.20.226.0/27",
+                    "networkSecurityGroupName": "",
+                    "routeTableName": "",
+                    "serviceEndpoints": [{
+                            "service": "Microsoft.EventHub"
+                        },
+                        {
+                            "service": "Microsoft.Sql"
+                        },
+                        {
+                            "service": "Microsoft.Storage"
+                        },
+                        {
+                            "service": "Microsoft.KeyVault"
+                        }
+                    ],
+                    "delegations": []
+                },
+                {
+                    "name": "snet-az-subnet-eu-app-003",
+                    "addressPrefix": "172.20.226.32/27",
+                    "networkSecurityGroupName": "",
+                    "routeTableName": "",
+                    "serviceEndpoints": [],
+                    "delegations": [{
+                        "name": "sqlMiDel",
+                        "properties": {
+                            "serviceName": "Microsoft.Sql/managedInstances"
+                        }
+                    }]
+                },
+                {
+                    "name": "snet-az-subnet-eu-kpi-004",
+                    "addressPrefix": "172.20.226.64/28",
+                    "networkSecurityGroupName": "",
+                    "routeTableName": "",
+                    "serviceEndpoints": [],
+                    "delegations": [{
+                        "name": "netappDel",
+                        "properties": {
+                            "serviceName": "Microsoft.Netapp/volumes"
+                        }
+                    }]
+                },
+                {
+                    "name": "AzureFirewallSubnet",
+                    "addressPrefix": "172.20.226.80/28",
+                    "networkSecurityGroupName": "",
+                    "routeTableName": "",
+                    "serviceEndpoints": [],
+                    "delegations": []
+                },
+                {
+                    "name": "AzureBastionSubnet",
+                    "addressPrefix": "172.20.226.96/29",
+                    "networkSecurityGroupName": "",
+                    "routeTableName": "",
+                    "serviceEndpoints": [],
+                    "delegations": []
+                },
+                  
+                 {
+                    "name": "snet-az-subnet-eu-mgmt-005",
+                    "addressPrefix": "172.20.226.104/29",
+                    "networkSecurityGroupName": "",
+                    "routeTableName": "",
+                    "serviceEndpoints": [],
+                    "delegations": [],
+                    "privateEndpointNetworkPolicies": "Disabled", // This property must be set to disabled for subnets that contain private endpoints. It confirms that NSGs rules will not apply to private endpoints (currently not supported). Default Value when not specified is "Enabled".
+                    "privateLinkServiceNetworkPolicies": "Enabled"
+                }         
+                      
+            ]
+        }
+
+    }
+}

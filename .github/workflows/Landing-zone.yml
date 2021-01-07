@@ -1,0 +1,249 @@
+name: ARM deploying Landing Zone
+on:
+  push:
+    paths:
+      - '.github/workflows/Landing-zone.yml'
+    branches: [ main ]
+  pull_request:
+    paths:
+      - '.github/workflows/Landing-zone.yml'
+    branches: [ main ]
+  workflow_dispatch:
+    branches: [ main, users/* ]
+
+env:
+  test_env_var: 'test'
+  #cluster-name: 'Githun-demo-BACKEND-AKS'
+  #AKS_LOCATION: '<resource-group-localtion>'                                        # The location where the AKS cluster is going to be deployed
+  # GEO_REDUNDANCY_LOCATION: '<geo-redundancy-location>'                              # The location for Azure resources that support native geo-redunancy. Should be different than the location parameter and ideally should be a paired region - https://docs.microsoft.com/en-us/azure/best-practices-availability-paired-regions. This region does not need to support availability zones.
+  #TARGET_VNET_RESOURCE_ID: '<cluster-spoke-vnet-resource-id>'                       # The regional network spoke VNet Resource ID that the cluster will be joined to
+  #K8S_RBAC_AAD_PROFILE_TENANTID: '<tenant-id-with-user-admin-permissions>'          # The tenant to integrate AKS-managed Azure AD
+  #K8S_RBAC_AAD_PROFILE_ADMIN_GROUP_OBJECTID: '<azure-ad-aks-admin-group-object-id>' # The Azure AD group object ID that has admin access to the AKS cluster
+  #CLUSTER_AUTHORIZED_IP_RANGES: '[]'                                                # By default, this deployment will allow unrestricted access to your cluster's API Server. You should limit access to the API Server to a set of well-known IP addresses (i.,e. your hub firewall IP, bastion subnet, build agents, or any other networks you'll administer the cluster from), and can do so by adding a CLUSTER_AUTHORIZED_IP_RANGES="['managementRange1', 'managementRange2', 'AzureFirewallIP/32']"" parameter.
+
+jobs:
+  deploy:
+    name: Deploy Landing Zone 
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Set Environment Variables - Organizational Details #Set Variables
+      uses: ./.github/actions/set-variable
+      with:
+        variableFileName: 'org-details'
+
+    - name: Set Environment Variables - Organizational Details #Set Variables
+      uses: ./.github/actions/set-variable
+      with:
+        variableFileName: 'all-stages-infra'
+
+    # Login into your Azure Subscription using your Azure credentials - make sure the credentials has write permissions for the specific resource group/subscription. The credentials should be stored in GitHub Secrets - (Go to Settings Tab ->Secrets)
+    - name: Azure Login
+      uses: Azure/login@v1
+      with:
+        creds: '${{ secrets.AZURE_CREDENTIALS }}'
+       
+    # Deploy the RG into your environment, assuming all prerequisites are up and running.
+    - name: Azure ARM - Resource Group
+      uses: azure/arm-deploy@v1
+      with:
+        scope: 'subscription'
+        region: eastus
+        subscriptionId: "${{ env.SUB_ID }}"
+        template: ARM-templates/Resourcegroup-deploy.json
+        parameters: ARM-templates/Resource-group-parameters.json
+        deploymentMode: Incremental   
+     
+    # Deploy the VNET into your environment, assuming all prerequisites are Met.
+   # - name: Azure ARM - Deploy Vnet
+    #  uses: azure/arm-deploy@v1
+     # with:
+      #  scope: 'resourcegroup'
+       # subscriptionId: "${{ env.SUB_ID }}"
+        #resourceGroupName: "${{ env.RESOURCE_GROUP }}"
+        #template: ARM-templates/AzureVnet/deploy.json
+        #parameters: ARM-templates/AzureVnet/parameters.json
+        #deploymentMode: Incremental  
+        
+    - name: Azure ARM - Deploy Vnet
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          az deployment group create --name Provision_VNET --resource-group "${{ env.cus_prefix }}-${{ env.RESOURCE_GROUP }}-${{ env.team_suffix }}" --template-file ARM-templates/AzureVnet/deploy.json --parameters ARM-templates/AzureVnet/parameters.json    
+          
+ # Deploy the Bastion into your environment, assuming all prerequisites are up and running.
+    - name: Azure ARM - Deploy Azure bastion 
+      uses: azure/arm-deploy@v1
+      with:
+        scope: 'resourcegroup'
+        subscriptionId: "${{ env.SUB_ID }}"
+        resourceGroupName: "${{ env.cus_prefix }}-${{ env.RESOURCE_GROUP }}-${{ env.team_suffix }}"
+        template: ARM-templates/AzureBastion/deploy.json
+        parameters: ARM-templates/AzureBastion/parameters.json
+        deploymentMode: Incremental  
+          
+# Deploy the UpdateManagement into your environment, assuming all prerequisites are up and running..   
+    - name: Azure ARM - Deploy Update management
+      uses: azure/arm-deploy@v1
+      with:
+        scope: 'resourcegroup'
+        subscriptionId: "${{ env.SUB_ID }}"
+        resourceGroupName: "${{ env.cus_prefix }}-${{ env.RESOURCE_GROUP }}-${{ env.team_suffix }}"
+        template: ARM-templates/Update-management-deploy.json
+        parameters: ARM-templates/Update-management-Paramteres.json
+        deploymentMode: Incremental 
+        
+        
+# Deploy the Activitygroup into your environment, assuming all prerequisites are up and running.
+    - name: Azure ARM - Deploy Azure Activity log
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          az deployment sub create --name CreateDiagnosticSetting --location eastus --template-file ARM-templates/ActivityLog/deploy.json --parameters ARM-templates/ActivityLog/parameters.json
+    
+# Deploy the Action Group into your environment, assuming all prerequisites are up and running.
+    - name: Azure ARM - Deploy Azure Action Group 
+      uses: azure/arm-deploy@v1
+      with:
+        scope: 'resourcegroup'
+        subscriptionId: "${{ env.SUB_ID }}"
+        resourceGroupName: "${{ env.cus_prefix }}-${{ env.RESOURCE_GROUP }}-${{ env.team_suffix }}"
+        template: ARM-templates/Actiongroup/deploy.json
+        parameters: ARM-templates/Actiongroup/parameters.json
+        deploymentMode: Incremental
+
+    #- name: Azure ARM - Deploy Azure Activity log 
+    #  uses: azure/arm-deploy@v1
+     # with:
+      #  scope: 'resourcegroup'
+      #  subscriptionId: "${{ env.SUB_ID }}"
+      #  resourceGroupName: "${{ env.RESOURCE_GROUP }}"
+      #  template: ARM-templates/ActivityLog/deploy.json
+      #  parameters: ARM-templates/ActivityLog/parameters.json
+      #  deploymentMode: Incremental
+    
+  
+    
+    # Deploy the cluster into your environment, assuming all prerequisites are up and running.
+    #- name: Azure ARM - Deploy AKS cluster
+     # uses: azure/arm-deploy@v1
+      #with:
+       # scope: 'resourcegroup'
+        #subscriptionId: "${{ env.SUB_ID }}"
+        #resourceGroupName: "${{ env.RESOURCE_GROUP }}"
+        #template: ARM-templates/kubernetes.aks.deploy.json
+        #parameters: ARM-templates/kubernetes.-aks.-parameters.json
+        #deploymentMode: Incremental    
+     #  echo "::set-output name=name::$(az deployment group show --resource-group ${{ env.RESOURCE_GROUP }} -n cluster-stamp --query properties.outputs.aksClusterName.value -o tsv)"
+      #  azcliversion: 2.6.0
+    
+    #- name: Azure ARM - Deploy ACR
+     # uses: azure/arm-deploy@v1
+      #with:
+       # scope: 'resourcegroup'
+        #subscriptionId: "${{ env.SUB_ID }}"
+        #resourceGroupName: "${{ env.RESOURCE_GROUP }}"
+        #template: ARM-templates/container.registries.deploy.json
+        #parameters: ARM-templates/container.registries.parameters.Json
+        #deploymentMode: Incremental   
+    
+   # - name: Azure ACR login
+    #  uses: Azure/docker-login@v1
+     # with:
+      #  login-server: githubactiondemo005.azurecr.io
+       # username: ${{ secrets.REGISTRY_USERNAME }}
+        #password: ${{ secrets.REGISTRY_PASSWORD }}
+    
+    #- run: |
+     #   docker build . -t githubactiondemo.azurecr.io/k8sdemo:${{ github.sha }}
+      #  docker push githubactiondemo.azurecr.io/k8sdemo:${{ github.sha }}
+    
+   # - name: Set the AKS cluster 
+    #  uses: azure/aks-set-context@v1
+     # with:
+      #  creds: '${{ secrets.AZURE_CREDENTIALS }}' # Azure credentials
+       # resource-group: "${{ env.RESOURCE_GROUP }}"
+        #cluster-name: "${{ env.cluster-name}}"
+      #id: login
+   
+    #- name: Create AKS secret 
+     # uses: Azure/k8s-create-secret@v1
+      #with:
+       # container-registry-url: githubactiondemo005.azurecr.io
+        #container-registry-username: ${{ secrets.REGISTRY_USERNAME }}
+        #container-registry-password: ${{ secrets.REGISTRY_PASSWORD }}
+        #secret-name: demo-k8s-secret
+    
+   # - name: Create K8s Deployment 
+    #  uses: Azure/k8s-deploy@v1
+     # with:
+      #  manifests: |
+       #   manifest/deployment.yml
+   
+   # - name: Install Helm
+    #  uses: azure/setup-helm@v1
+     # with:
+      #  version: 'v3.4.1' # default is latest stable
+      #id: install
+
+   # Set the AKS cluster context
+   # - name: Set the AKS cluster context
+    #  uses: Azure/aks-set-context@v1
+     # if: github.event_name == 'push'
+      #with:
+       # creds: '${{ secrets.AZURE_CREDENTIALS }}'
+        #cluster-name: ${{ steps.aks-cluster.outputs.name }}
+        #resource-group: ${{ env.RESOURCE_GROUP }}
+
+    # Create the cluster-baseline-settings namespace and deploy Flux intoit
+    #- name: Create the cluster-baseline-settings namespace and deploy Flux
+     # uses: Azure/k8s-deploy@v1
+      #if: github.event_name == 'push'
+      #with:
+       # namespace: 'cluster-baseline-settings'
+        #manifests: |
+         # cluster-baseline-settings/ns-cluster-baseline-settings.yaml
+          #cluster-baseline-settings/flux.yaml
+
+  #ContinuousSecurityAZSK
+  AZSK_Scan:
+    needs: [deploy]
+    runs-on: windows-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Set Environment Variables - Organizational Details #Set Variables
+      uses: ./.github/actions/set-variable
+      with:
+        variableFileName: 'org-details'
+
+    - name: Set Environment Variables - Organizational Details #Set Variables
+      uses: ./.github/actions/set-variable
+      with:
+        variableFileName: 'all-stages-infra'
+
+    - name: Login via Az module
+      uses: azure/login@v1.1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        enable-AzPSSession: true
+
+    - name: Install Az-Sk Module and Run AzSK Security Verification Tests
+      run: |
+        Install-Module AzSK -AllowClobber -SkipPublisherCheck -Force
+        Import-Module AzSK
+        (ECHO Y | powershell Get-AzSKAzureServicesSecurityStatus -SubscriptionId  '${{ env.SUB_ID }}' -DoNotOpenOutputFolder)
+        New-Item -Path "D:\a\${{ env.repoName }}\" -Name "upload" -ItemType "directory"
+        $destinationRoot = "D:\a\${{ env.repoName }}\upload\AzSk.zip"
+        Compress-Archive -LiteralPath ${{ env.az_sk_path }} -DestinationPath $destinationRoot
+      shell: powershell    
+
+    - name: Publish AzSK Results #Publish Artifact
+      uses: actions/upload-artifact@master
+      with:
+          name: azsk
+          path: D:\a\${{ env.repoName }}\upload
+

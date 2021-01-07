@@ -1,0 +1,24 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vNetName": {
+      "value": "vnet-hub-spoke-BU0001A0008-00"
+    },
+    "vNetAddressPrefix": {
+      "value": "10.240.0.0/16"
+    },
+    "subnet1Name": {
+      "value": "snet-clusternodes"
+    },
+    "subnet1Prefix": {
+      "value": "10.240.0.0/22"
+    },
+    "subnet2Name": {
+      "value": "snet-clusteringressservices"
+    },
+    "subnet2Prefix": {
+      "value": "10.240.4.0/28"
+    }
+  }
+}

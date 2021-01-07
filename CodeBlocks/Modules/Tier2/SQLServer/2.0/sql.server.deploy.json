@@ -1,0 +1,250 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "SQLServerName": {
+        "type": "string",
+        "metadata": {
+          "description": "Azure SQL Server name"
+        }
+      },
+      "elasticPoolType": {
+          "type": "string",
+          "allowedValues": [
+            "specific",
+            "centralised"
+          ]
+      },
+      "stage": {
+          "type": "string",
+          "allowedValues": [
+            "Release to DEV",
+            "Release to QA",
+            "Release to PRD"
+          ]
+      },
+      "guid": {
+        "type": "string",
+        "defaultValue": "pid-5a669062-d8d0-471f-b36a-40115651cea7"
+      },
+  
+      "SQLserverLocation": {
+        "type": "string",
+        "defaultValue": "westus2",
+        "metadata": {
+          "description": "The location of the SQL server."
+        }
+      },
+      "SQLServerAzureADAdmin": {
+        "type": "string",
+        "metadata": {
+          "description": "The account name to use for the SQL server administrator."
+        }
+      },
+      "SQLServerAzureADAdminSID": {
+        "type": "string"
+      },
+  
+      "SQLServerAdminPassword": {
+        "type": "securestring",
+        "metadata": {
+          "description": "SQL.admin password"
+        }
+      },
+      "SQLServerMicrosoftServicesBypassFirewall": {
+        "type": "bool",
+        "defaultValue": true
+      },
+      "SecurityLogStorageAccountEndpoint": {
+        "type": "string",
+        "defaultValue": "",
+        "metadata": {
+          "description": "Endpoint of the storage account where Audit Logs will be stored",
+          "AllEnvironmentsAutoAssignValueFromVariablesKeyVaultSecretName": "SecurityLogStorageAccountEndpoint",
+          "ConcatParameterAfterValue": "parameters('SQLserverLocation')"
+        }
+      },
+      "SecurityLogStorageAccountAccessKey": {
+        "type": "string",
+        "defaultValue": "",
+        "metadata": {
+          "description": "Access Key to be used in the Audit Logs storage account",
+          "AllEnvironmentsAutoAssignValueFromSecretsKeyVaultSecretName": "Security-Storage-Account-PrimaryKey",
+          "ConcatParameterAfterValue": "parameters('SQLserverLocation')"
+        }
+      },
+      "elasticPoolName": {
+        "type": "String",
+        "metadata": {
+          "description": "Elastic pool name"
+        }
+      },
+      "edition": {
+        "defaultValue": "Basic",
+        "allowedValues": [
+          "Basic"
+        ],
+        "type": "String",
+        "metadata": {
+          "description": "The Elastic Pool edition."
+        }
+      },
+      "poolDtu": {
+        "defaultValue": 50,
+        "type": "Int",
+        "metadata": {
+          "description": "The Elastic poolDtu."
+        }
+      },
+      "databaseDtuMin": {
+        "defaultValue": 0,
+        "type": "Int",
+        "metadata": {
+          "description": "Minimum DTUs number."
+        }
+      },
+      "databaseDtuMax": {
+        "defaultValue": 5,
+        "type": "Int",
+        "metadata": {
+          "description": "Maximum DTUs number."
+        }
+      }
+    },
+    "variables": {
+    },
+    "resources": [
+      { // add this resource to the resources section in the mainTemplate.json (do not add the entire file)
+        "apiVersion": "2018-02-01",
+        "name": "[concat(parameters('guid'))]", // use your generated GUID here
+        "type": "Microsoft.Resources/deployments",
+        "properties": {
+          "mode": "Incremental",
+          "template": {
+            "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+            "contentVersion": "1.0.0.0",
+            "resources": []
+          }
+        }
+      },
+      
+      {
+        "condition": "[or(equals(parameters('elasticPoolType'),'specific'),and(equals(parameters('elasticPoolType'),'centralised'),equals(parameters('stage'),'Release to DEV')))]",  
+        "name": "[parameters('SQLServerName')]",
+        "type": "Microsoft.Sql/servers",
+        "location": "[parameters('SQLserverLocation')]",
+        "apiVersion": "2015-05-01-preview",
+        "identity": {
+          "type": "SystemAssigned"
+        },
+        "properties": {
+          "administratorLogin": "admin.SQL",
+          "administratorLoginPassword": "[parameters('SQLServerAdminPassword')]"
+        },
+        "resources": [
+          {
+            "condition": "[or(equals(parameters('elasticPoolType'),'specific'),and(equals(parameters('elasticPoolType'),'centralised'),equals(parameters('stage'),'Release to DEV')))]",  
+            "apiVersion": "2017-03-01-preview",
+            "type": "auditingSettings",
+            "name": "[concat(parameters('SQLServerName'),'-auditsettings')]",
+            "location": "[parameters('SQLserverLocation')]",
+            "dependsOn": [
+              "[concat('Microsoft.Sql/servers/', parameters('SQLServerName'))]"
+            ],
+            "properties": {
+              "state": "Enabled",
+              "storageEndpoint": "[parameters('SecurityLogStorageAccountEndpoint')]",
+              "storageAccountAccessKey": "[parameters('SecurityLogStorageAccountAccessKey')]",
+              "retentionDays": 365,
+              "auditActionsAndGroups": [
+                "BATCH_STARTED_GROUP",
+                "BATCH_COMPLETED_GROUP",
+                "APPLICATION_ROLE_CHANGE_PASSWORD_GROUP",
+                "BACKUP_RESTORE_GROUP",
+                "DATABASE_LOGOUT_GROUP",
+                "DATABASE_OBJECT_CHANGE_GROUP",
+                "DATABASE_OBJECT_OWNERSHIP_CHANGE_GROUP",
+                "DATABASE_OBJECT_PERMISSION_CHANGE_GROUP",
+                "FAILED_DATABASE_AUTHENTICATION_GROUP",
+                "SCHEMA_OBJECT_ACCESS_GROUP",
+                "SCHEMA_OBJECT_CHANGE_GROUP",
+                "SCHEMA_OBJECT_OWNERSHIP_CHANGE_GROUP",
+                "SCHEMA_OBJECT_PERMISSION_CHANGE_GROUP",
+                "SUCCESSFUL_DATABASE_AUTHENTICATION_GROUP",
+                "USER_CHANGE_PASSWORD_GROUP",
+                "DATABASE_PERMISSION_CHANGE_GROUP",
+                "DATABASE_PRINCIPAL_CHANGE_GROUP",
+                "DATABASE_PRINCIPAL_IMPERSONATION_GROUP",
+                "DATABASE_ROLE_MEMBER_CHANGE_GROUP",
+                "DATABASE_OPERATION_GROUP"
+              ]
+            }
+          },
+          {
+            "condition": "[or(equals(parameters('elasticPoolType'),'specific'),and(equals(parameters('elasticPoolType'),'centralised'),equals(parameters('stage'),'Release to DEV')))]",  
+            "apiVersion": "2015-05-01-preview",
+            "type": "securityAlertPolicies",
+            "name": "[concat(parameters('SQLServerName'),'-securityAlertsettings')]",
+            "dependsOn": [
+              "[concat('Microsoft.Sql/servers/', parameters('SQLServerName'))]",
+              "[concat('Microsoft.Sql/servers/', parameters('SQLServerName'),'/auditingSettings/',parameters('SQLServerName'),'-auditsettings')]"
+            ],
+            "properties": {
+              "state": "Enabled",
+              "emailAccountAdmins": "Enabled",
+              "retentionDays": "365",
+              "storageEndpoint": "[parameters('SecurityLogStorageAccountEndpoint')]",
+              "storageAccountAccessKey": "[parameters('SecurityLogStorageAccountAccessKey')]"
+            }
+          },
+          {
+            "condition": "[or(equals(parameters('elasticPoolType'),'specific'),and(equals(parameters('elasticPoolType'),'centralised'),equals(parameters('stage'),'Release to DEV')))]",  
+            "type": "Microsoft.Sql/servers/firewallrules",
+            "name": "[concat(parameters('SQLServerName'), '/', 'AllowAllWindowsAzureIps')]",
+            "apiVersion": "2015-05-01-preview",
+            "properties": {
+              "startIpAddress": "0.0.0.0",
+              "endIpAddress": "0.0.0.0"
+            },
+            "dependsOn": [
+              "[parameters('SQLServerName')]"
+            ]
+          },
+          {
+            "condition": "[or(equals(parameters('elasticPoolType'),'specific'),and(equals(parameters('elasticPoolType'),'centralised'),equals(parameters('stage'),'Release to DEV')))]",  
+
+            "type": "Microsoft.Sql/servers/administrators",
+            "apiVersion": "2014-04-01-preview",
+            "name": "[concat(parameters('SQLServerName'), '/', 'ActiveDirectory')]",
+            "properties": {
+              "administratorType": "ActiveDirectory",
+              "login": "[parameters('SQLServerAzureADAdmin')]",
+              "sid": "[parameters('SQLServerAzureADAdminSID')]",
+              "tenantId": "[subscription().tenantId]"
+            },
+            "dependsOn": [
+              "[parameters('SQLServerName')]"
+            ]
+          }
+        ]
+      },
+      {
+        "condition": "[or(equals(parameters('elasticPoolType'),'specific'),and(equals(parameters('elasticPoolType'),'centralised'),equals(parameters('stage'),'Release to DEV')))]",  
+        "type": "Microsoft.Sql/servers/elasticPools",
+        "apiVersion": "2014-04-01",
+        "name": "[concat(parameters('SQLServerName'), '/', parameters('elasticPoolName'))]",
+        "location": "[parameters('SQLserverLocation')]",
+        "dependsOn": [
+          "[concat('Microsoft.Sql/servers/', parameters('SQLServerName'))]"
+        ],
+        "properties": {
+          "edition": "[parameters('edition')]",
+          "dtu": "[parameters('poolDtu')]",
+          "databaseDtuMin": "[parameters('databaseDtuMin')]",
+          "databaseDtuMax": "[parameters('databaseDtuMax')]"
+        }
+      }
+    ],
+    "outputs": {
+    }
+  }

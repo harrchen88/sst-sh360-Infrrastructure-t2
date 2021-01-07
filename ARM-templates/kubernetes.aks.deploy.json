@@ -1,0 +1,240 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "aksClusterName": {
+      "type": "string",
+      "metadata": {
+        "description": "Kubernetes AKS Cluster Name"
+      }
+    },
+    "kubernetesVersion": {
+      "type": "string",
+      "defaultValue": "1.17.13",
+      "metadata": {
+        "description": "Kubernetes Version"
+      }
+    },
+    "servicePrincipalId": {
+      "type": "securestring",
+      "metadata": {
+        "description": "App ID of the Service Principal"
+      }
+    },
+    "servicePrincipalSecret": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The Service Principal Client Secret"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "The location of AKS resource"
+      }
+    },
+    "vmSize": {
+      "type": "string",
+      "defaultValue": "Standard_F4s_v2",
+      "metadata": {
+        "description": "The size of the Virtual Machine"
+      }
+    },
+    "osType": {
+      "type": "string",
+      "allowedValues": [
+        "Linux"
+      ],
+      "defaultValue": "Linux",
+      "metadata": {
+        "description": "The type of operating system"
+      }
+    },
+    "nodeCount": {
+      "type": "int",
+      "defaultValue": 3,
+      "minValue": 1,
+      "maxValue": 5,
+      "metadata": {
+        "description": "The number of agent nodes for the cluster"
+      }
+    },
+    "enableAutoScaling": {
+      "type": "bool",
+      "defaultValue": true,
+      "allowedValues": [
+        true,
+        false
+      ],
+      "metadata": {
+        "description": "Is AKS AutoScaler enabled or not? true/false"
+      }
+    },
+    "minNodeCount": {
+      "type": "int",
+      "defaultValue": 2,
+      "minValue": 1,
+      "metadata": {
+        "description": "Minimum number of worker nodes when autoscaler is in use."
+      }
+    },
+    "maxNodeCount": {
+      "type": "int",
+      "defaultValue": "4",
+      "minValue": 1,
+      "metadata": {
+        "description": "Maximum number of worker nodes when autoscaler is in use."
+      }
+    },
+    "vNetResourceGroup": {
+      "type": "string",
+      "metadata": {
+        "description": "The resource group Name of the Virtual Network"
+      }
+    },
+    "vNetResourceName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the Virtual Network"
+      }
+    },
+    "subnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "Virtual Network subnet used for nodes and/or pods IP assignment"
+      }
+    },
+    "networkPlugin": {
+      "type": "string",
+      "allowedValues": [
+        "azure",
+        "kubenet"
+      ],
+      "defaultValue": "kubenet",
+      "metadata": {
+        "description": "Network plugin used for building Kubernetes network"
+      }
+    },
+    "serviceCIDR": {
+      "type": "string",
+      "metadata": {
+        "description": "A CIDR notation IP range from which to assign service cluster IPs"
+      }
+    },
+    "dnsServiceIP": {
+      "type": "string",
+      "metadata": {
+        "description": "Containers DNS server IP address"
+      }
+    },
+    "dockerBridgeCIDR": {
+      "type": "string",
+      "metadata": {
+        "description": "A CIDR notation IP for Docker bridge"
+      }
+    },
+    "podCidr": {
+      "type":"string",
+      "metadata": {
+        "description": "A CIDR notation IP range from which to assign pod IPs when kubenet is used."
+      }
+    },
+    "enableHttpApplicationRouting": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "boolean flag to turn on and off of http application routing"
+      }
+    },
+    "enableRBAC": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "boolean flag to enable Kubernetes Role-Based Access Control"
+      }
+    },
+    "logAnalyticsWorkspaceName": {
+      "type": "string",
+      "metadata": {
+        "description": "The Resource Name of the Log Analytics workspace used for diagnostic log integration"
+      }
+    },
+    "logAnalyticsResourceGroup": {
+      "type": "string",
+      "metadata": {
+        "description": "The Resource Group of the Log Analytics workspace used for diagnostic log integration"
+      }
+    }
+  },
+  "variables": {
+    "logAnalyticsWorkspaceResourceID": "[resourceId(parameters('logAnalyticsResourceGroup'), 'Microsoft.operationalinsights/workspaces', parameters('logAnalyticsWorkspaceName'))]",
+    "subnetId": "[resourceId(parameters('vNetResourceGroup'), 'Microsoft.Network/virtualNetworks/subnets', parameters('vNetResourceName'), parameters('subnetName'))]",
+    "aksClusterSPNId": "[parameters('servicePrincipalId')]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.ContainerService/managedClusters",
+      "apiVersion": "2019-08-01",
+      "name": "[parameters('aksClusterName')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [],
+      "properties": {
+        "dnsPrefix": "[parameters('aksClusterName')]",
+        "enableRBAC": "[parameters('enableRBAC')]",
+        "kubernetesVersion": "[parameters('kubernetesVersion')]",
+        "agentPoolProfiles": [
+          {
+            "name": "agentpool",
+            "count": "[parameters('nodeCount')]",
+            "minCount": "[parameters('minNodeCount')]",
+            "maxCount": "[parameters('maxNodeCount')]",
+            "enableAutoScaling": "[parameters('enableAutoScaling')]",
+            "vmSize": "[parameters('vmSize')]",
+            "type": "VirtualMachineScaleSets",
+            "osType": "[parameters('osType')]",
+            "vnetSubnetID": "[variables('subnetId')]",
+            "orchestratorVersion": "[parameters('kubernetesVersion')]"
+          }
+        ],
+        "servicePrincipalProfile": {
+          "clientId": "[parameters('servicePrincipalId')]",
+          "secret": "[parameters('servicePrincipalSecret')]"
+        },
+        "networkProfile": {
+          "networkPlugin": "[parameters('networkPlugin')]",
+          "serviceCidr": "[parameters('serviceCIDR')]",
+          "dnsServiceIP": "[parameters('dnsServiceIP')]",
+          "dockerBridgeCidr": "[parameters('dockerBridgeCIDR')]",
+          "podCidr": "[parameters('podCidr')]",
+          "loadBalancerSku": "basic"
+        },
+        "addonProfiles": {
+          "httpApplicationRouting": {
+            "enabled": "[parameters('enableHttpApplicationRouting')]"
+          },
+          "omsagent": {
+            "enabled": true,
+            "config": {
+              "logAnalyticsWorkspaceResourceID": "[variables('logAnalyticsWorkspaceResourceID')]"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "controlPlaneFQDN": {
+      "type": "string",
+      "value": "[reference(concat('Microsoft.ContainerService/managedClusters/', parameters('aksClusterName'))).fqdn]"
+    },
+    "aksClusterSPNId": {
+      "type": "string",
+      "value": "[variables('aksClusterSPNId')]"
+    },
+    "aksSubnetId": {
+      "type": "string",
+      "value": "[variables('subnetId')]"
+    }
+  }
+}

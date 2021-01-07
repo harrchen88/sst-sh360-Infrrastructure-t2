@@ -1,0 +1,12 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "settingName": {
+            "value": "diagnostic-profile"
+        },
+        "workspaceId": {
+            "value": "/subscriptions/f2e68202-1605-4760-aa3d-b9859a54acb2/resourcegroups/mgr-dojo-iac-prd-t0/providers/microsoft.operationalinsights/workspaces/mgr-iac-laworkspace-prd-t0"
+        }
+    }
+}

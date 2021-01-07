@@ -1,0 +1,16 @@
+{
+    "variables": [
+      {
+        "name": "RESOURCE_GROUP_LOCATION",
+        "value": "eastus"
+      },
+      {
+        "name": "az_sk_path",
+        "value": "C:/Users/runneradmin/AppData/Local/Microsoft/AzSKLogs/"
+      },
+      {
+        "name": "RESOURCE_GROUP",
+        "value": "Dojo-IAC-prd"
+      }
+    ]
+  }

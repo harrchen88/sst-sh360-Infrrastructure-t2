@@ -1,0 +1,45 @@
+name: $(Build.DefinitionName)-$(SourceBranchName)-$(Date:yyyyMMdd).$(Rev:rr)
+variables:
+  RepoName: VDC CodeBlocks
+  Tier1ModulesPath: Tier1/
+  Tier2ModulesPath: Tier2/
+  Tier3ModulesPath: Tier3/
+  ArtifactName: Modules
+resources:
+  repositories:
+    - repository: main
+      type: git
+      name: '$(RepoName)'
+trigger:
+  branches:
+    include:
+      - '*'
+  paths:
+    include:
+      - Tier1/
+      - Tier2/
+      - Tier3/
+
+jobs:
+- job: PublishArtifact
+  displayName: Publish Artifact
+  workspace:
+    clean: all
+  
+  steps:
+  - task: CopyFiles@2
+    inputs:
+      SourceFolder: '$(Tier1ModulesPath)'
+      TargetFolder: '$(Build.ArtifactStagingDirectory)/Tier1'
+  - task: CopyFiles@2
+    inputs:
+      SourceFolder: '$(Tier2ModulesPath)'
+      TargetFolder: '$(Build.ArtifactStagingDirectory)/Tier2'
+  - task: CopyFiles@2
+    inputs:
+      SourceFolder: '$(Tier3ModulesPath)'
+      TargetFolder: '$(Build.ArtifactStagingDirectory)/Tier3'
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      ArtifactName: '$(ArtifactName)'

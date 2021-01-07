@@ -1,0 +1,65 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "accessPolicies": {
+      "value": [
+        {
+          "tenantId": "72f988bf-86f1-41af-91ab-2d7cd011db47",
+          "objectId": "cf4aee29-420b-450e-a35b-f4aff6e4a934",
+          "permissions": {
+            "certificates": [
+              "All"
+            ],
+            "keys": [
+              "All"
+            ],
+            "secrets": [
+              "All"
+            ]
+          }
+        }
+      ]
+    },
+    "secretsObject": {
+      "value": {
+        "secrets": [
+          {
+            "secretName": "exampleSecret1",
+            "secretValue": "secretVaule1"
+          }
+        ]
+      }
+    },
+    "enableVaultForDeployment": {
+      "value": true
+    },
+    "enableVaultForDiskEncryption": {
+      "value": true
+    },
+    "enableVaultForTemplateDeployment": {
+      "value": true
+    },
+    "keyVaultName": {
+      "value": null
+    },
+    "logsRetentionInDays": {
+      "value": 30
+    },
+    "logAnalyticsWorkspaceName": {
+      "value": null
+    },
+    "logAnalyticsWorkspaceResourceGroup": {
+      "value": null
+    },
+    "vaultSku": {
+      "value": "Premium"
+    },
+    "diagnosticStorageAccountName": {
+      "value": null
+    },
+    "diagnosticStorageAccountRG": {
+      "value": null
+    }
+  }
+}

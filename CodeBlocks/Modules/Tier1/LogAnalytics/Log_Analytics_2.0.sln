@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2042
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{151D2E53-A2C4-4D7D-83FE-D05416EBD58E}") = "Log Analytics", "2.0\Log_Analytics_2.0.deployproj", "{BD8BEA02-335D-4D5B-A04C-4EECDBFB0168}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+		Description = Tier1 Log Analytics ARM Templates
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BD8BEA02-335D-4D5B-A04C-4EECDBFB0168}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD8BEA02-335D-4D5B-A04C-4EECDBFB0168}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD8BEA02-335D-4D5B-A04C-4EECDBFB0168}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD8BEA02-335D-4D5B-A04C-4EECDBFB0168}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {093CA3A6-9BED-451C-A8E6-E91B825C8727}
+	EndGlobalSection
+EndGlobal

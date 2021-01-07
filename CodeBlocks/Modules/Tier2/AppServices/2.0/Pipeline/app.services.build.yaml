@@ -1,0 +1,36 @@
+name: $(Build.DefinitionName)-$(SourceBranchName)-$(Date:yyyyMMdd).$(Rev:rr)
+variables:
+  ModuleTier: Tier3
+  ModuleName: AppService
+  ModuleVersion: 1.0
+  RepoName: VDC CodeBlocks
+  ModulePath: $(ModuleTier)/$(ModuleName)/$(ModuleTier)$(ModuleName)_$(ModuleVersion)
+  ArtifactName: Module
+resources:
+  repositories:
+    - repository: main
+      type: git
+      name: '$(RepoName)'
+trigger:
+  branches:
+    include:
+      - '*'
+  paths:
+    include:
+      - Tier3/AppService/Tier3AppService_1.0
+
+jobs:
+- job: PublishArtifact
+  displayName: Publish Artifact
+  workspace:
+    clean: all
+  
+  steps:
+  - task: CopyFiles@2
+    inputs:
+      SourceFolder: '$(ModulePath)'
+      TargetFolder: '$(Build.ArtifactStagingDirectory)'
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      ArtifactName: '$(ArtifactName)'

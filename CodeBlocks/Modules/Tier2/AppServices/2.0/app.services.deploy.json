@@ -1,0 +1,91 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "appServicePlanName": {
+            "type": "String",
+            "metadata": {
+                "description": "Name of the Application Service Plan"
+            }
+        },
+        "location": {
+            "defaultValue": "westus2",
+            "type": "String",
+            "metadata": {
+                "description": "Location for resource"
+            }
+        },
+        "guid": {
+      "type": "string",
+      "defaultValue": "pid-5a669062-d8d0-471f-b36a-40115651cea7"
+    },
+        "webAppPortalName": {
+            "type": "String",
+            "metadata": {
+                "description": "Name of the Web Application Portal Name"
+            }
+        }
+    },
+    "variables": {
+        "appName": "[parameters('webAppPortalName')]",
+        "identity_resource_id": "[concat(resourceId('Microsoft.Web/sites', variables('appName')), '/providers/Microsoft.ManagedIdentity/Identities/default')]"
+    },
+    "resources": [
+        { // add this resource to the resources section in the mainTemplate.json (do not add the entire file)
+      "apiVersion": "2018-02-01",
+      "name": "[concat(parameters('guid'))]", // use your generated GUID here
+      "type": "Microsoft.Resources/deployments",
+      "properties": {
+        "mode": "Incremental",
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "resources": []
+        }
+      }
+    },
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "2017-08-01",
+            "name": "[parameters('appServicePlanName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [],
+            "sku": {
+                "name": "F1",
+                "tier": "Free",
+                "size": "F1",
+                "family": "F",
+                "capacity": 1
+            },
+            "kind": "app",
+            "properties": {}
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2016-08-01",
+            "name": "[parameters('webAppPortalName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]"
+            ],
+            "kind": "app",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('appServicePlanName'))]",
+                "httpsOnly": true
+            }
+        }
+    ],
+    "outputs": {
+        "tenantId": {
+            "type": "String",
+            "value": "[reference(variables('identity_resource_id'), '2015-08-31-PREVIEW').tenantId]"
+        },
+        "objectId": {
+            "type": "String",
+            "value": "[reference(variables('identity_resource_id'), '2015-08-31-PREVIEW').principalId]"
+        }
+    }
+}

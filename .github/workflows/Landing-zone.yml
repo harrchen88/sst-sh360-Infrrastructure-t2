@@ -53,7 +53,7 @@ jobs:
         region: eastus
         subscriptionId: "${{ env.SUB_ID }}"
         template: ARM-templates/Resourcegroup-deploy.json
-        parameters: ARM-templates/Resource-group-parameters.json
+        parameters: ARM-templates/Resource-group-parameters.json rgName="${{ env.cus_prefix }}-${{ env.RESOURCE_GROUP }}-${{ env.team_suffix }}" rgLocation="${{env.RESOURCE_GROUP_LOCATION}}"
         deploymentMode: Incremental   
      
     # Deploy the VNET into your environment, assuming all prerequisites are Met.
@@ -71,7 +71,7 @@ jobs:
       uses: azure/CLI@v1
       with:
         inlineScript: |
-          az deployment group create --name Provision_VNET --resource-group "${{ env.cus_prefix }}-${{ env.RESOURCE_GROUP }}-${{ env.team_suffix }}" --template-file ARM-templates/AzureVnet/deploy.json --parameters ARM-templates/AzureVnet/parameters.json    
+          az deployment group create --name Provision_VNET --resource-group "${{ env.cus_prefix }}-${{ env.RESOURCE_GROUP }}-${{ env.team_suffix }}" --template-file ARM-templates/AzureVnet/deploy.json --parameters ARM-templates/AzureVnet/parameters.json vNetName="${{ env.cus_prefix }}-${{env.vNetName}}-${{ env.team_suffix }}"
           
  # Deploy the Bastion into your environment, assuming all prerequisites are up and running.
     - name: Azure ARM - Deploy Azure bastion 
@@ -81,7 +81,7 @@ jobs:
         subscriptionId: "${{ env.SUB_ID }}"
         resourceGroupName: "${{ env.cus_prefix }}-${{ env.RESOURCE_GROUP }}-${{ env.team_suffix }}"
         template: ARM-templates/AzureBastion/deploy.json
-        parameters: ARM-templates/AzureBastion/parameters.json
+        parameters: ARM-templates/AzureBastion/parameters.json vNetId="/subscriptions/${{env.SUB_ID}}/resourceGroups/${{ env.cus_prefix }}-${{ env.RESOURCE_GROUP }}-${{ env.team_suffix }}/providers/Microsoft.Network/virtualNetworks/${{ env.cus_prefix }}-${{env.vNetName}}-${{ env.team_suffix }}" azureBastionName="${{ env.cus_prefix }}-${{ env.azureBastionName }}-${{ env.team_suffix }}"
         deploymentMode: Incremental  
           
 # Deploy the UpdateManagement into your environment, assuming all prerequisites are up and running..   
@@ -92,7 +92,7 @@ jobs:
         subscriptionId: "${{ env.SUB_ID }}"
         resourceGroupName: "${{ env.cus_prefix }}-${{ env.RESOURCE_GROUP }}-${{ env.team_suffix }}"
         template: ARM-templates/Update-management-deploy.json
-        parameters: ARM-templates/Update-management-Paramteres.json
+        parameters: ARM-templates/Update-management-Paramteres.json workspaceName="${{ env.cus_prefix }}-${{ env.workspaceName }}-${{ env.team_suffix }}" automationAccountName="${{ env.cus_prefix }}-${{ env.automationAccountName }}-${{ env.team_suffix }}" automationAccountLocation="${{env.RESOURCE_GROUP_LOCATION}}"
         deploymentMode: Incremental 
         
         
@@ -101,7 +101,7 @@ jobs:
       uses: azure/CLI@v1
       with:
         inlineScript: |
-          az deployment sub create --name CreateDiagnosticSetting --location eastus --template-file ARM-templates/ActivityLog/deploy.json --parameters ARM-templates/ActivityLog/parameters.json
+          az deployment sub create --name CreateDiagnosticSetting --location eastus --template-file ARM-templates/ActivityLog/deploy.json --parameters ARM-templates/ActivityLog/parameters.json settingName="${{ env.cus_prefix }}-${{ env.settingName }}-${{ env.team_suffix }}" workspaceId="/subscriptions/${{env.SUB_ID}}/resourcegroups/${{ env.cus_prefix }}-${{ env.RESOURCE_GROUP }}-${{ env.team_suffix }}/providers/microsoft.operationalinsights/workspaces/${{ env.cus_prefix }}-${{ env.workspaceName }}-${{ env.team_suffix }}"
     
 # Deploy the Action Group into your environment, assuming all prerequisites are up and running.
     - name: Azure ARM - Deploy Azure Action Group 
@@ -111,7 +111,7 @@ jobs:
         subscriptionId: "${{ env.SUB_ID }}"
         resourceGroupName: "${{ env.cus_prefix }}-${{ env.RESOURCE_GROUP }}-${{ env.team_suffix }}"
         template: ARM-templates/Actiongroup/deploy.json
-        parameters: ARM-templates/Actiongroup/parameters.json
+        parameters: ARM-templates/Actiongroup/parameters.json actionGroupName="${{ env.cus_prefix }}-${{ env.actionGroupName }}-${{ env.team_suffix }}" groupShortName="${{ env.groupShortName }}"
         deploymentMode: Incremental
 
     #- name: Azure ARM - Deploy Azure Activity log 

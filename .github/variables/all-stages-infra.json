@@ -8,6 +8,42 @@
         "name": "az_sk_path",
         "value": "C:/Users/runneradmin/AppData/Local/Microsoft/AzSKLogs/"
       },
+        
+      {
+        "name": "azureBastionName",
+        "value": "snet-az-bas-eu-bastion"
+      },
+        
+       {
+        "name": "vNetName",
+        "value": "snet-az-vnet-eu-LZ"
+      },
+        
+      {
+        "name": "workspaceName",
+        "value": "iac-laworkspace-prd"
+      },
+        
+      {
+        "name": "automationAccountName",
+        "value": "iac-Automation-prd"
+      },
+        
+       {
+        "name": "actionGroupName",
+        "value": "action-az-ag-eu-log"
+      },
+        
+     {
+        "name": "groupShortName",
+        "value": "azgroup01"
+      },
+        
+        
+       {
+        "name": "settingName",
+        "value": "diagnostic-profile"
+      },
       {
         "name": "RESOURCE_GROUP",
         "value": "Dojo-IAC-prd"

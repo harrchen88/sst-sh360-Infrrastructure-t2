@@ -1,7 +1,7 @@
 
 resource_groups = {
   resource_group_1 = {
-    name     = "mgr-Dojo-terraform-prd-t0"
+    name     = "mgr-Dojo-terraform-prd-gc"
     location = "eastus2"
     tags = {
       created_by = "niraje@microsoft.com"

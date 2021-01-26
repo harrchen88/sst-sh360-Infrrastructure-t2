@@ -1,12 +1,8 @@
 name: ARM deploying Landing Zone
 on:
   push:
-    paths:
-      - '.github/workflows/Landing-zone.yml'
     branches: [ main ]
   pull_request:
-    paths:
-      - '.github/workflows/Landing-zone.yml'
     branches: [ main ]
   workflow_dispatch:
     branches: [ main, users/* ]

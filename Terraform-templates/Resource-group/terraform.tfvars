@@ -1,11 +1,11 @@
 
 resource_groups = {
   resource_group_1 = {
-    name     = "mgr-Dojo-terraform-prd-gc"
-    location = "eastus2"
+    name     = "harrchen2021Feb"
+    location = "eastus"
     tags = {
-      created_by = "niraje@microsoft.com"
-      contact_dl = "niraje@microsoft.com"
+      created_by = "harrchen@hotmail.com"
+      contact_dl = "harrchen@hotmail.com"
       mots_id    = "00000"
       auto_fix   = "no"
     }
